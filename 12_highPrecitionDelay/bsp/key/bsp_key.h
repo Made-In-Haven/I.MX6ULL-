@@ -15,7 +15,6 @@ enum keyValue{
 
 
 void key_init();
-int key_getValue();
 int read_key();
 
 #endif

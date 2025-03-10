@@ -36,9 +36,9 @@ int main(void)
 	unsigned int state = LED_OFF;
 	while(1)			/* 死循环 				*/
 	{	
-		// state = !state;
-        // led_switch(LED0, state);
-		// delay(500);
+		state = !state;
+        led_switch(LED0, state);
+		delay_ms(1000);
 	}
 
 	return 0;

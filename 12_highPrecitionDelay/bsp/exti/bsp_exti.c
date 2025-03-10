@@ -40,7 +40,7 @@ void exti_init()
 void gpio1_io18_irqhandler(unsigned int gicciar, void *param)
 {
 	static int state = beep_off;
-	delay(10);  /*原则上不能加延时，中断要快进快出，暂时这样，原则上禁止在中断中调用延时*/
+	delay_ms(10);  /*原则上不能加延时，中断要快进快出，暂时这样，原则上禁止在中断中调用延时*/
 	if(gpio_pin_read(GPIO1,18)==0)
 	{
 		state = !state;

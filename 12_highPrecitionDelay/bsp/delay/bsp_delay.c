@@ -1,25 +1,6 @@
 #include "bsp_delay.h"
 #include "bsp_int.h"
 #include "bsp_led.h"
-void delay_short(volatile unsigned int n)
-{
-	while(n--){}
-}
-
-/*
- * @description	: 延时函数,在396Mhz的主频下
- * 			  	  延时时间大约为1ms
- * @param - n	: 要延时的ms数
- * @return 		: 无
- */
-void delay(volatile unsigned int n)
-{
-	while(n--)
-	{
-		delay_short(0x7ff);
-	}
-}
-
 
 /*使用通用定时器GPT延时*/
 void delay_init()
@@ -36,20 +17,51 @@ void delay_init()
 
 	GPT1->PR &= ~(0XFFF);
 	GPT1->PR |= (65<<0); //66分频  1MHZ
-
+#if 0
 	GPT1->OCR[0] = 1000000/2; //设置中断周期是500ms
 	while(((GPT1->CR)>>15 & (1))); //等待复位结束
 		
 	GPT1->IR |= (1<<0);	 //Output Compare Channel 1 interrupt is enabled.
 	GIC_EnableIRQ(GPT1_IRQn);
 	system_register_irqhandler(GPT1_IRQn,gpt1_irqhandler,NULL);
+#endif
 
+	GPT1->OCR[0] = 0XFFFFFFFF;		//设置比较寄存器为最大值
+	while(((GPT1->CR)>>15 & (1))); //等待复位结束
 	GPT1->CR |= (1<<0);//打开gpt1
 	
+}
+/*使用通用定时器实现微秒级延时,最低貌似只能到20us*/
+void delay_us(unsigned int number)
+{
+	unsigned int oldcnt,newcnt;
+	unsigned int tcntvalue = 0;
 
+	oldcnt = GPT1->CNT;
+	while(1)
+	{
+		newcnt = GPT1->CNT;
+		if(newcnt!=oldcnt)		//代表开始延时
+		{
+			if(newcnt>oldcnt)	//正常情况
+				tcntvalue = newcnt-oldcnt;
+			else				//计数器溢出情况
+				tcntvalue = 0xffffffff - oldcnt + newcnt;
+			if(tcntvalue>=number)//延时时间到了
+				break;
+		}
+	}
+}
+/*使用通用定时器实现毫秒级延时*/
+void delay_ms(unsigned int number)
+{
+	unsigned int step = 0;
+
+	for(step = 0;step<number;step++)
+		delay_us(1000);
 }
 
-
+/*通用定时器中断实现led闪烁*/
 void gpt1_irqhandler(unsigned int gicciar, void *param)
 {	
 	static unsigned int led_state = LED_ON;
