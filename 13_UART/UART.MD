@@ -10,7 +10,7 @@
 ***
 UART 作为串口的一种，其工作原理也是将数据一位一位的进行传输，发送和接收各用一条线，因此通过 UART 接口与外界相连最少只需要三条线： TXD(发送)、 RXD(接收)和 GND(地线)。图 21.1.1.1 就是 UART 的通信格式：
 
-![image-20250310201248469](/home/user/linux/driver/I.MX6ULL-/13_UART/UART.assets/image-20250310201248469.png)
+![image-20250310201248469](./UART.assets/image-20250310201248469.png)
 
 图 21.1.1.1 中各位的含义如下：
 - 空闲位：数据线在空闲状态的时候为逻辑“1”状态，也就是高电平，表示没有数据线空闲，没有数据传输。
@@ -60,7 +60,7 @@ UART的时钟源UART_CLK_ROOT为480/6=80Mhz，需要设置多路选择器CSCDR1[
 - UARTx_UBIR：
 - UARTx_UBMR：
 
-![image-20250310204555467](/home/user/linux/driver/I.MX6ULL-/13_UART/UART.assets/image-20250310204555467.png)
+![image-20250310204555467](./UART.assets/image-20250310204555467.png)
 ***
 
 
