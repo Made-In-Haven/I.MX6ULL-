@@ -20,6 +20,7 @@ Copyright © zuozhongkai Co., Ltd. 1998-2019. All rights reserved.
 #include "bsp_epit.h"
 #include "bsp_key_filter.h"
 #include "bsp_uart.h"
+#include "stdio.h"
 
 
 int main(void)
@@ -30,19 +31,26 @@ int main(void)
 	beep_init();
 	led_init();			/* 初始化led 			*/
 	delay_init();
-	uart_init(UART1);
+	uart_init(UART1,115200);
 	keyFilter_init();			/*使用EPIT1给按键消抖*/
-	
-	
-	unsigned char c = 0;
+	int a,b;
+	int ret;					//记录scanf检测到的输入变量个数
+
+
 	while(1)			/* 死循环 				*/
 	{	
-		puts("请输入一个字符");
-		c = getc();
-		puts("\r\n");
-		puts("输入的字符为：");
-		putc(c);
-		puts("\r\n");
+		printf("请输入2个整数,使用空格隔开:");
+		ret = scanf("%d %d", &a,&b);
+		while(ret!=2)	//如果scanf没有读到2个变量，重来
+		{
+			printf("\r\n");
+			printf("请重新输入：");
+			ret = scanf("%d %d", &a,&b);
+		}
+		printf("\r\n数据%d+%d=%d",a,b,a+b);//不支持浮点
+		printf("\r\n");
+
+
 	}
 
 	return 0;

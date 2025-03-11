@@ -60,7 +60,7 @@ UART的时钟源UART_CLK_ROOT为480/6=80Mhz，需要设置多路选择器CSCDR1[
 - UARTx_UBIR：
 - UARTx_UBMR：
 
-![image-20250310204555467](./UART.assets/image-20250310204555467.png)
+![image-20250310204555467](/home/user/linux/driver/I.MX6ULL-/13_UART/UART.assets/image-20250310204555467.png)
 
 
 
@@ -71,3 +71,22 @@ $(COBJS): obj/%.o : %.c
 	$(GCC) -Wall -nostdlib -fno-buildin -c -O2 $(INCLUDE) $< -o $@
 ```
 加入了一个编译选项``-fno-buildin``表示不适用内建函数
+
+
+
+***
+使用了NXP官方提供的波特率设置函数，函数中使用了除法，**但是ARM指令集没有除法指令**，因此需要链接第三方库函数来实现除法，在Makefile文件中修改如下：
+```
+LIBPATH := -lgcc -L /usr/local/arm/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabihf/lib/gcc/arm-linux-gnueabihf/4.9.4
+
+$(TARGET).bin:$(OBJS)
+	$(LD) -T imx6ull.lds $^ -o $(TARGET).elf $(LIBPATH)
+```
+Makefile 在链接的时候使用选项“-L”来指定库所在的目录
+
+
+
+***
+每次使用scanf函数的时候都要清空缓冲区
+
+**移植的printf不支持浮点输出！！！**
