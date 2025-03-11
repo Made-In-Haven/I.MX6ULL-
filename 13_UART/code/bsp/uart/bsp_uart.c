@@ -1,5 +1,6 @@
 #include "bsp_uart.h"
 #include "bsp_gpio.h"
+#include "bsp_led.h"
 /*UART初始化函数，波特率设置为115200*/
 void uart_init(UART_Type* uart_base)
 {
@@ -20,9 +21,10 @@ void uart_init(UART_Type* uart_base)
     uart_base->UFCR &= ~(7<<7);
     uart_base->UFCR |= (5<<7); //对80Mhz进行1分频
 
-    uart_base->UBIR &= ~(0xffff);
+    
+    // uart_base->UBIR &= ~(0xffff);    //加了这个有问题
     uart_base->UBIR |= (71);
-    uart_base->UBMR &= ~(0xffff);
+    // uart_base->UBMR &= ~(0xffff);    //加了这个有问题
     uart_base->UBMR |= (3124);
 
     //使能串口
@@ -60,4 +62,33 @@ void uart_reset(UART_Type* uart_base)
     uart_base->UCR2 &= ~(1<<0);
     while(!((uart_base->UCR2&0x1)&0x1));
 
+}
+
+
+/*从串口发一个字符*/
+void putc(unsigned char c)
+{
+    while((((UART1->USR2)>>3)&0X1)==0); //等待之前的数据发送完成
+    UART1->UTXD = c;
+}
+
+/*从串口接收一个字符*/
+unsigned char getc(void)
+{
+    while((((UART1->USR2)>>0)&0X1)==0); //等待有数据接收到
+    return UART1->URXD;
+}
+
+/*从串口发送字符串*/
+void puts(char* s)
+{
+    char *p=s;
+    while(*p)
+    {
+        putc(*p);
+        p++;
+        led_on();
+
+    }
+    
 }

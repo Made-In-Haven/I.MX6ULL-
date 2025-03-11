@@ -16,6 +16,7 @@ INCLUDEDIRS := imx6ull \
 			bsp/exti \
 			bsp/epit \
 			bsp/key_filter \
+			bsp/uart \
 			project
 
 SRCDIRS :=  project \
@@ -28,6 +29,7 @@ SRCDIRS :=  project \
 			bsp/exti \
 			bsp/delay \
 			bsp/key_filter \
+			bsp/uart \
 			bsp/epit 
 
 INCLUDE := $(patsubst %, -I %,$(INCLUDEDIRS))
@@ -51,10 +53,10 @@ $(TARGET).bin:$(OBJS)
 	$(OBJDUMP) -D -m arm $(TARGET).elf > $(TARGET).dis
 
 $(SOBJS): obj/%.o : %.s
-	$(GCC) -Wall -nostdlib -c -O2  $(INCLUDE) -o $@ $<
+	$(GCC) -Wall -nostdlib -fno-builtin -c -O2  $(INCLUDE) -o $@ $<
 
 $(COBJS): obj/%.o : %.c
-	$(GCC) -Wall -nostdlib -c -O2 $(INCLUDE) $< -o $@
+	$(GCC) -Wall -nostdlib -fno-builtin -c -O2 $(INCLUDE) $< -o $@
 
 print:
 	@echo INCLUDE = $(INCLUDE)

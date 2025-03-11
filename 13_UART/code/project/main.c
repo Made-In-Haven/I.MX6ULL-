@@ -19,6 +19,7 @@ Copyright © zuozhongkai Co., Ltd. 1998-2019. All rights reserved.
 #include "bsp_exti.h"
 #include "bsp_epit.h"
 #include "bsp_key_filter.h"
+#include "bsp_uart.h"
 
 
 int main(void)
@@ -29,16 +30,19 @@ int main(void)
 	beep_init();
 	led_init();			/* 初始化led 			*/
 	delay_init();
-	// epit1_init(0,66000000/2);   /*初始化EPIT1，中断函数为led灯闪烁*/
-	// keyFilter_init();			/*使用EPIT1给按键消抖*/
+	uart_init(UART1);
+	keyFilter_init();			/*使用EPIT1给按键消抖*/
 	
 	
-	unsigned int state = LED_OFF;
+	unsigned char c = 0;
 	while(1)			/* 死循环 				*/
 	{	
-		state = !state;
-        led_switch(LED0, state);
-		delay_ms(1000);
+		puts("请输入一个字符");
+		c = getc();
+		puts("\r\n");
+		puts("输入的字符为：");
+		putc(c);
+		puts("\r\n");
 	}
 
 	return 0;
