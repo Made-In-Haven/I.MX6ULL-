@@ -60,7 +60,7 @@ UART的时钟源UART_CLK_ROOT为480/6=80Mhz，需要设置多路选择器CSCDR1[
 - UARTx_UBIR：
 - UARTx_UBMR：
 
-![image-20250310204555467](./UART.assets/image-20250310204555467.png)
+![image-20250310204555467](/home/user/linux/driver/I.MX6ULL-/13_UART/UART.assets/image-20250310204555467.png)
 
 
 
