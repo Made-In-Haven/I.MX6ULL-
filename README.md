@@ -1,1 +1,5 @@
 # I.MX6ULL-
+
+imxdownload是正点原子提供的Ubuntu下裸机烧写软件
+
+在DDR3实验中使用ddr_stress_tester进行校准得到新的寄存器值，然后把新的值写到imxdownload.h重新编译得到imxdownload_new
