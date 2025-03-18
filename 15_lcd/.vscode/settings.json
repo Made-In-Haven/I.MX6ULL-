@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "bsp_gpio.h": "c",
+        "bsp_delay.h": "c",
+        "fsl_iomuxc.h": "c",
+        "stdio.h": "c"
+    }
+}
