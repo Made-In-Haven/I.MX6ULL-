@@ -22,7 +22,13 @@ Copyright © zuozhongkai Co., Ltd. 1998-2019. All rights reserved.
 #include "bsp_uart.h"
 #include "stdio.h"
 #include "bsp_lcd.h"
+#include "bsp_lcdapi.h"
+#include "font.h" 
 
+
+unsigned int backColor[3] = {
+	LCD_LIGHTBLUE, LCD_BLUE, LCD_YELLOW
+};	//刷屏颜色数组
 
 int main(void)
 {
@@ -34,16 +40,26 @@ int main(void)
 	delay_init();
 	uart_init(UART1,115200);
 	keyFilter_init();			/*使用EPIT1给按键消抖*/
-	lcd_init();
+	lcd_init();			//lcd初始化
 	unsigned char STATE= LED_OFF;
+
+	tftlcd_dev.forecolor = LCD_RED;
+	tftlcd_dev.backcolor = LCD_WHITE;
+	lcd_show_string(10,40,260,32,32,(char*)"iKun");
+	int index = 0;
 
 	while(1)			/* 死循环 				*/
 	{	
+		lcd_clear(backColor[index]);
+		index++;
+		tftlcd_dev.forecolor = LCD_RED;
+		tftlcd_dev.backcolor = LCD_WHITE;
+		lcd_show_string(10,40,260,32,32,(char*)"iKun");
 		led_switch(LED0,STATE);
 		STATE = !STATE;
 		delay_ms(500);
-
-
+		if(index==3)
+			index=0;
 	}
 
 	return 0;

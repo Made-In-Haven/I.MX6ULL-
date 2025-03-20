@@ -90,7 +90,7 @@ DOTCLK接口
 会用到的寄存器：
 
 - LCDIF_CTRLn（eLCDIF General Control Register）
-	- bit0：在数据传输过程中该位必须置为1
+	- bit0：在数据传输过程中该位必须置为1,使能位
 	- bit1：设置数据格式，0为24位数据全部有效
 	- bit5：设置LCDIF接口为主线总控设备，要置1。**总线主控设备（Bus Master）：在总线系统中，主控设备负责发起和控制数据传输，而从设备则响应主控设备的请求。作为总线主控，eLCDIF可以主动向内存或其他外设请求数据，而无需依赖其他设备。**
 	- bit8-9：数据格式设置，0x3为24bit
@@ -133,7 +133,8 @@ DOTCLK接口
 
 - LCDIF_VDCTRL4
 	- bit0-17：每一行的像素点，1024
-
+	- bit18：设为1
+	
 - LCDIF_CUR_BUF：eLCDIF正在传输的当前帧的地址。
 - LCDIF_NEXT_BUF：下一帧的首地址。
 
@@ -142,7 +143,9 @@ DOTCLK接口
 
 PLL5的输出频率计算公式如下：![image-20250317172342138](./lcd.assets/image-20250317172342138.png)
 
-为了简化计算，不要后面的分数部分，最后结果是Fref*DIV_SELECT，Fref是24Mhz，DIV_SELECT是CCM_ANALOG_PLL_VIDEOn寄存器的bit0-6（valid value：27~54）
+为了简化计算，不要后面的分数部分，最后结果是Fref*DIV_SELECT，Fref是24Mhz，DIV_SELECT是CCM_ANALOG_PLL_VIDEOn寄存器的bit0-6（valid value：27~54）	
+
+CCM_ANALOG_PLL_VIDEOn寄存器的bit13为PLL使能，置1
 
 CCM_ANALOG_PLL_VIDEOn的bit20–19：设为2，1分频
 
@@ -157,6 +160,18 @@ CSCDR2[LCDIF1_PRED] bit12-14：0-7为1-8分频
 CCM_CBCMR bit23-25：0-4对应1-5分频
 
 CSCDR2 bit9-11：设为0
+
+
+***
+
+
+
+- 内联函数：在C语言中，如果一些函数被频繁调用，不断地有函数入栈，即函数栈，会造成栈空间或栈内存的大量消耗。为了解决这个问题，特别的引入了inline修饰符，表示为内联函数。本实验的画点函数lcd_drawPoint和读点函数lcd_readPoint会在显示过程中重复大量使用，因此使用内联函数
+- 本节实验进行中遇到的问题：ASCII字符集点阵数组本来保存在font.h中，但在编译过程中出现重复定义问题。原来条件编译只能保证不会重复编译，不能保证不会重复定义。重复编译可能造成重复定义，但重复定义的来源不只有重复编译。解决方法：不仅用#ifndef组合防止重复编译，而且将变量在源文件中定义，只在头文件里放extern声明。这样各模块在编译的时候，就知道“有这么个变量，但它的空间不在我这里”，链接的时候，这个变量虽然出现在所有包含这个头文件的模块里，但只有一个模块是它的真身所在。
+
+
+
+
 
 
 
