@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "bsp_rtc.h": "c",
+        "imx6ul.h": "c",
+        "random": "c"
+    }
+}
