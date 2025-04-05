@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "bsp_spi.h": "c",
+        "bsp_icm20608.h": "c",
+        "imx6ul.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "random": "c"
+    }
+}
