@@ -145,6 +145,20 @@ format -- 格式化字符串。
 
 需要开启Cortex-A7 的 NEON 和 FPU(VFPV4_D32)
 ```
+core_ca7.h文件
+#define CPACR_ASEDIS_Pos                 31U                                    /*!< CPACR: ASEDIS Position */
+#define CPACR_ASEDIS_Msk                 (1UL << CPACR_ASEDIS_Pos)              /*!< CPACR: ASEDIS Mask */
+
+#define CPACR_D32DIS_Pos                 30U                                    /*!< CPACR: D32DIS Position */
+#define CPACR_D32DIS_Msk                 (1UL << CPACR_D32DIS_Pos)              /*!< CPACR: D32DIS Mask */
+
+#define CPACR_cp11_Pos                   22U                                    /*!< CPACR: cp11 Position */
+#define CPACR_cp11_Msk                   (3UL << CPACR_cp11_Pos)                /*!< CPACR: cp11 Mask */
+
+#define CPACR_cp10_Pos                   20U                                    /*!< CPACR: cp10 Position */
+#define CPACR_cp10_Msk                   (3UL << CPACR_cp10_Pos)                /*!< CPACR: cp10 Mask */
+
+main.c文件
  void imx6ul_hardfpu_enable(void)
 {
 	uint32_t cpacr;
@@ -153,16 +167,22 @@ format -- 格式化字符串。
 	/* 使能NEON和FPU */
 	cpacr = __get_CPACR();
 	cpacr = (cpacr & ~(CPACR_ASEDIS_Msk | CPACR_D32DIS_Msk))
-		   |  (3UL << CPACR_cp10_Pos) | (3UL << CPACR_cp11_Pos);
+		   |  (3UL << CPACR_cp10_Pos) | (3UL << CPACR_cp11_Pos);//3后面的UL表示这是一个unsigned long类型，在32位系统中也占4个字节
 	__set_CPACR(cpacr);
 	fpexc = __get_FPEXC();
 	fpexc |= 0x40000000UL;	
 	__set_FPEXC(fpexc);
 }
 ```
-
+ARMv7-A 处理器除了标准的R0\~R15，CPSR，SPSR 以外，由于引入了 MMU、TLB、Cache 等内容，ARMv7-A 使用协处理器来对这些扩展来进行管理，ARMv7-A 支持 16 个协处理器，编号从 CP0\~CP15，其中的 CP15 协处理器称之为系统控制协处理器。在Cortex-A7 Technical ReferenceManua.pdf中有描述，CP15协处理器的CPACR寄存器控制CP10和CP11协处理器的访问。其中CPACR_ASEDIS位清0表示所有advanced SIMD和VFP指令正常执行。CPACR_D32DIS位清0表示使用VFP寄存器的D16-D31。CPACR_cp10位置为11表示打开对CP10协处理器的全访问。CPACR_cp11位置为11同理。在ARM ArchitectureReference Manual ARMv7-A and ARMv7-R edition.pdf中有描述，FPEXC寄存器的作用是为高级SIMD和浮点（VFP）扩展提供全局启用，并指示如何记录这些扩展的状态。FPEXC寄存器的bit30置1表示是能SIMD和VFP。
 
 ```Makefile
 $(COBJS): obj/%.o : %.c
 	$(CC) -Wall -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -Wa,-mimplicit-it=thumb -nostdlib -fno-builtin -c -O2  $(INCLUDE) -o $@ $<
 ```
+-march=armv7-a		指定目标架构为 ARMv7-A（支持 Thumb-2 和硬件浮点）。
+
+-mfpu=neon-vfpv4	启用 NEON SIMD 和 VFPv4 浮点单元指令集。
+
+-mfloat-abi=hard	使用 硬件浮点 ABI（浮点运算直接通过 FPU 指令执行，而非软件模拟）。
+
