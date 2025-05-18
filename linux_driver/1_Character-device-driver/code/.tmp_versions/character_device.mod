@@ -1,0 +1,2 @@
+/home/user/linux/imx6ull/driver/I.MX6ULL-/linux_driver/Character-device-driver/code/character_device.ko
+/home/user/linux/imx6ull/driver/I.MX6ULL-/linux_driver/Character-device-driver/code/character_device.o
