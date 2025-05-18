@@ -1,0 +1,2 @@
+/home/user/linux/imx6ull/driver/I.MX6ULL-/linux_driver/2_led_mmu/code/led_dev.ko
+/home/user/linux/imx6ull/driver/I.MX6ULL-/linux_driver/2_led_mmu/code/led_dev.o
