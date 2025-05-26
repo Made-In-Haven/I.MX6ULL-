@@ -284,3 +284,22 @@ devid_failed:
 
 
 **`exit`函数需要完成：关闭设备（可选），释放字符设备号、卸载字符设备**
+
+
+
+```
+static struct pinctl_led_dev
+{
+    dev_t devid;
+    u32 major;
+    u32 minor;
+    struct cdev cdev;
+    struct device* device;
+    struct class* class;
+    
+}led;
+```
+
+**在cdev结构体创建时，不能创建为指向cdev的指针（struct cdev* cdev;）不然会莫名其妙的报错！！！**
+
+**直接创建cdev结构体就不会报错了**
