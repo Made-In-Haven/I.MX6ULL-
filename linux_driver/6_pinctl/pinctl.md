@@ -135,7 +135,7 @@ led	{
 
 #### 在iomux节点下的imx6ul下添加led的pinctrl_led
 
-```
+```c
 pinctrl_led:ledgrp {
 			fsl,pins = <
 			MX6UL_PAD_GPIO1_IO03__GPIO1_IO03	0X10B0
