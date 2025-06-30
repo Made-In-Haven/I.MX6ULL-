@@ -14,3 +14,6 @@
 ```
 
 `MX6ULL_PAD_SNVS_TAMPER1__GPIO5_IO0`的定义在imx6ull-pinfunc-snvs.h文件中。
+
+
+
