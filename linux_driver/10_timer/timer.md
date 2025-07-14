@@ -168,7 +168,12 @@ struct file_operations {
 
 ### unlock_ioctl
 
-以unlocked_ioctl为例，第一个参数是文件指针，第二个参数是传入的命令，第三个参数是
+```c
+long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+```
+
+以unlocked_ioctl为例，第一个参数是文件指针，第二个参数是传入的命令，第三个参数是用户传进来的数据
+
 
 ioctl的cmd编码规则在linux_kernel/include/uapi/asm-generic/ioctl.h和Documentation/ioctl/ioctl-decoding.txt文件中有描述
 
@@ -211,6 +216,135 @@ linux内核提供了api函数来编码cmd
 
 可读性： 在驱动源代码和内核日志中，幻数通常用一个可打印的 ASCII 字符（范围 0-255）来表示（例如 'k', 'p', 'T'）。这使得代码和调试信息更易读。虽然最终编码到 cmd 里的是一个 8 位整数，但在源码中看到 _IO('E', 1) 比看到 0x4501 更容易理解这个命令是属于某个“E”打头的驱动或模块的。
 ```
+
+驱动中的`unlock_ioctl`例程：
+```c
+/*ioctl指令宏定义*/
+#define CMD_BASE 0XEF                     //幻数，只要驱动之间的幻数不冲突，这个数在0-255可以随便设置  
+#define CLOSE_CMD   (_IO(CMD_BASE, 1))    //关闭命令
+#define OPEN_CMD   (_IO(CMD_BASE, 2))
+#define SET_PEROID_CMD   (_IOW(CMD_BASE, 3, int))
+#define PEROID (500)      //500ms
+
+
+long timer_ioctl (struct file *filp, unsigned int cmd, unsigned long arg)
+{
+    int ret = 0;
+    struct dev* dev = (struct dev*)filp->private_data;
+    switch (cmd)
+    {
+        case CLOSE_CMD:
+            del_timer_sync(&dev->timer);
+            break;
+
+        case OPEN_CMD:
+            ret = mod_timer(&dev->timer,jiffies + msecs_to_jiffies(PEROID));
+            if(ret<0)
+            {
+                printk("OPEN_CMD_mod_timer_failed\r\n");
+            }
+            break;  
+
+        case SET_PEROID_CMD:
+            dev->peroid = arg;
+            del_timer_sync(&dev->timer);
+            ret = mod_timer(&dev->timer,jiffies + msecs_to_jiffies(arg));
+            if(ret<0)
+            {
+                printk("SET_PEROID_CMD_mod_timer_failed\r\n");
+            }
+            break;
+        default:
+            del_timer_sync(&dev->timer);
+            break;
+    }
+    return ret;
+}
+```
+
+### 应用程序示例
+
+```c
+#define CMD_BASE 0XEF           //和驱动一致
+#define CLOSE_CMD   (_IO(CMD_BASE, 1))    //关闭命令
+#define OPEN_CMD   (_IO(CMD_BASE, 2))
+#define SET_PEROID_CMD   (_IOW(CMD_BASE, 3, int))
+
+void cmd_handle(int fd, unsigned int cmd)
+{
+    unsigned long arg = 0;
+    switch (cmd)
+    {
+        case CLOSE_CMD:
+            ioctl(fd,cmd,0);
+            break;
+
+        case OPEN_CMD:
+            ioctl(fd,cmd,0);
+            break;
+
+        case SET_PEROID_CMD:
+            if(scanf("%lu",&arg)!=1)
+            {
+                while(getchar()!='\n');
+                printf("错了,arg:%lu",arg);
+                break;
+            }
+            // printf("arg:%lu\r\n",arg);
+            while (getchar() != '\n');          //清除标准输入缓冲区
+            ioctl(fd,cmd,arg);
+            break;
+
+        default:
+            break;
+    }
+}
+
+int main(int args, char* argv[])
+{
+    ......
+    
+    fd = open(filename,O_RDWR);
+
+    if(fd<0)
+    {
+        printf("open key device failed\r\n");
+        return fd;
+    }
+
+    while(1)
+    {
+        printf("\nInput CMD [1=Close, 2=Open, 3=SetPeriod]: ");
+        if (scanf("%u", &cmd) != 1) {
+            // 清空无效输入
+            while (getchar() != '\n');
+            printf("Invalid command!\n");
+            continue;
+        }                  
+        while (getchar() != '\n');//清除标准输入缓冲区
+        if(cmd==1)
+        {
+            cmd = CLOSE_CMD;        //关闭命令
+        }
+        else if(cmd==2)
+        {
+            cmd = OPEN_CMD;         //打开命令
+        }
+        else if(cmd==3)
+        {
+            cmd = SET_PEROID_CMD;   //设置周期
+        }
+        cmd_handle(fd, cmd);            //cmd处理函数
+
+    }
+
+
+    close(fd);
+    return 0;
+
+}
+```
+
 
 
 
