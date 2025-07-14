@@ -2,26 +2,31 @@
 
 
 
-## 裸机中断处理流程
+## 一、裸机中断处理流程
 
-1. 写中断向量表，在start.s中完成IRQ中断处理程序（包括保护现场，获取中断号，跳转至通用中断处理函数）
-2. 使能中断，初始化相应的寄存器
-3. 注册中断处理函数，完善对应中断号的中断处理函数
-4. 初始化外设中断
+在裸机系统中，中断处理需要手动完成全流程控制，步骤如下：
 
-
-
-
-
-## Linux中断API函数
-
-在linux中，内核会帮我们初始化相应的寄存器，我们只需要申请中断并完善中断处理函数就可以了。
+1. 编写中断向量表：在启动文件（如start.s）中定义中断向量表，实现 IRQ 中断处理程序的框架（包括现场保护、中断号获取、跳转至通用处理函数）。
+2. 使能中断与寄存器初始化：配置中断控制器（如 GIC）、外设中断使能寄存器，开启目标中断。
+3. 注册中断处理函数：为特定中断号绑定对应的处理函数，实现具体中断逻辑。
+4. 初始化外设中断：配置外设的中断触发方式（如边沿触发 / 电平触发）、中断掩码等参数。
 
 
 
-### 申请中断函数
 
-**request_irq 函数用于申请并激活中断**，request_irq函数可能会**引起睡眠**，因此**不能在中断或其他禁止睡眠的代码段（例如抢占了自旋锁或信号量的线程）**中申请。
+
+
+
+
+## 二、Linux中断API函数
+
+Linux 内核已封装中断控制器初始化逻辑，开发者只需调用 API 完成中断申请与处理，核心函数如下：
+
+
+
+### 1.申请中断函数
+
+==**request_irq 函数用于申请并激活中断**==，request_irq函数可能会**引起睡眠**，因此**不能在中断或其他禁止睡眠的代码段（例如抢占了自旋锁或信号量的线程）**中申请。
 
 ```c
 int request_irq(unsigned int irq,
@@ -33,8 +38,8 @@ int request_irq(unsigned int irq,
 --handler:	中断处理函数
 --name:		中断名字，设置以后可以在/proc/interrupts 文件中看到对应的中断名字。
 
---flags:	中断标志，多个中断标志可以使用“|”来组合使用。可以在文件 include/linux/interrupt.h 里			 面查看所有的中断标志。下面列举一些常用的中断标志：
-    			IRQF_SHARED:多个设备共享一个中断线，共享的所有中断都必须指定此标志。如果使用共享中							   断的话， request_irq 函数的 dev 参数就是唯一区分他们的标志
+--flags:	中断标志，多个中断标志可以使用“|”来组合使用。可以在文件 include/linux/interrupt.h 里面查看所有的中断标志。下面列举一些常用的中断标志：
+    			IRQF_SHARED:多个设备共享一个中断线，共享的所有中断都必须指定此标志。如果使用共享中断的话，request_irq函数的 dev 参数就是唯一区分他们的标志
                 IRQF_ONESHOT：单次中断，执行一次就结束
                 IRQF_TRIGGER_RISING：上升沿触发
                 IRQF_TRIGGER_FALLING：下降沿触发
@@ -51,7 +56,7 @@ int request_irq(unsigned int irq,
 
 
 
-### 释放中断函数
+### 2. 释放中断函数
 
 ```c
 void free_irq(unsigned int irq,
@@ -62,7 +67,7 @@ void free_irq(unsigned int irq,
 
 
 
-### 中断处理函数
+### 3. 中断处理函数
 
 ```c
 irqreturn_t (*irq_handler_t) (int, void *)
@@ -82,17 +87,15 @@ enum irqreturn {
 
 typedef enum irqreturn irqreturn_t;
 ```
-
-一般中断服务函数返回值使用如下形式：
-
-```c
-return IRQ_RETVAL(IRQ_HANDLED)
-```
+返回值类型：irqreturn_t（枚举类型），常用返回值：
+- IRQ_HANDLED：表示中断已被正确处理。
+- IRQ_NONE：表示未处理该中断（通常用于共享中断）。
+- 实际使用时推荐通过宏封装：return IRQ_RETVAL(IRQ_HANDLED);。
 
 
 
-### 中断使能和禁止函数
-
+### 4. 中断使能和禁止函数
+（1）**用于已经申请过的特定中断**
 ```c
 void enable_irq(unsigned int irq)
 void disable_irq(unsigned int irq)			//需要等待当前中断执行完成后禁止中断
@@ -101,7 +104,7 @@ void disable_irq_nosync(unsigned int irq)	//不需要等待
 
 
 
-全局中断使能和禁止函数
+（2）全局中断使能和禁止函数
 
 ```c
 local_irq_enable()			//全局使能
@@ -115,13 +118,12 @@ local_irq_restore(flags)	//根据flags来判断是打开还是关闭中断
 
 
 
-## 上半部和下半部
+## 三、上半部和下半部
 
-我们知道，中断处理函数必须快速处理，但是有时候中断处理函数受限于其他因素会无法快速处理。比如电容触摸屏通过中断通知 SOC 有触摸事件发生， SOC 响应中断，然后通过 IIC 接口读取触摸坐标值并将其上报给系统。但是我们都知道 IIC 的速度最高也只有400Kbit/S，所以在中断中通过 IIC 读取数据就会浪费时间。我们可以将通过 IIC 读取触摸数据的操作暂后执行，中断处理函数仅仅进行相应中断，然后清除中断标志位即可。这个时候中断处理过程就分为了两部分：
+为平衡中断响应速度与处理复杂度，Linux 将中断处理分为上半部（Top Half）和下半部（Bottom Half）：
 
-**上半部：上半部就是中断处理函数，那些处理过程比较快，不会占用很长时间的处理就可以放在上半部完成。**
-
-**下半部：如果中断处理过程比较耗时，那么就将这些比较耗时的代码提出来，交给下半部去执行，这样中断处理函数就会快进快出。**
+**上半部：即中断处理函数，负责快速处理紧急任务（如清除中断标志、记录硬件状态），必须原子执行（不睡眠、不阻塞）。**
+**下半部：延迟执行耗时操作（如数据处理、I/O 交互），可在中断上下文之外执行。**
 
 
 
@@ -134,11 +136,20 @@ local_irq_restore(flags)	//根据flags来判断是打开还是关闭中断
 
 
 
-### 下半部处理方法
+### 1. 下半部处理机制对比
 
-#### 
 
-#### 软中断（不建议使用）
+|特性	|软中断（不建议使用）|	Tasklet|	工作队列（Workqueue）|
+|-----|----|----|----|
+|运行上下文	|软中断上下文|	软中断上下文|	进程上下文（内核线程）|
+|睡眠支持	|不允许	|不允许	|允许（可调用msleep）|
+|并发控制|	多 CPU 可并行执行|	同一 CPU 串行执行|	同队列串行执行|
+适用场景|	高性能需求（如网络）|	简单异步任务|	复杂阻塞任务|
+核心 API|	raise_softirq|	tasklet_schedule	|schedule_work|
+
+### 2. 常用下半部实现方式
+
+#### （1）软中断（不建议使用）
 
 软中断在多核场景下遵守 **“谁触发，谁执行”** 原则
 
@@ -187,46 +198,74 @@ NR_SOFTIRQS
 
 
 
-#### tasklet
+#### （2）tasklet
 
+1. 定义和初始化
+	```c
+	#include <linux/interrupt.h>
 
+	// 定义tasklet结构体
+	static struct tasklet_struct my_tasklet;
 
-在中断初始化函数中定义一个tasklet，然后使用使用tasklet_init函数来初始化tasklet。
+	// 下半部处理函数
+	static void my_tasklet_func(unsigned long data) {
+		// 处理延迟任务（如数据解析、状态上报）
+	}
 
-```c
-struct tasklet_struct
-{
-    struct tasklet_struct *next; /* 下一个 tasklet */
-    unsigned long state; /* tasklet 状态 */
-    atomic_t count; /* 计数器，记录对 tasklet 的引用数 */
-    void (*func)(unsigned long); /* tasklet 执行的函数 */
-    unsigned long data; /* 函数 func 的参数 */
-};
+	// 初始化tasklet（通常在模块初始化中）
+	tasklet_init(&my_tasklet, my_tasklet_func, (unsigned long)dev);
+	```
 
-void tasklet_init(struct tasklet_struct *t,		//tasklet
-                  void (*func)(unsigned long),	//下半部函数
-				  unsigned long data);			//传递给函数的参数
-```
+2. 上半部触发下半部，`tasklet_schedule`函数：
+   ```c
+   static irqreturn_t my_irq_handler(int irq, void *dev_id) {
+		// 上半部：快速处理（如清除中断标志）
+		tasklet_schedule(&my_tasklet);  // 触发下半部
+		return IRQ_HANDLED;
+	}
 
+	```
 
 
 
 
 上半部在合适的地方（我的理解：正常情况下，清除中断标志位之后调用tasklet_schedule触发下半部；若中断处理函数一定要在中断里完成，那就在清除中断标志位之前的合适位置调用tasklet_schedule）通过调用tasklet_schedule来执行下半部。
 
-```c
-void tasklet_schedule(struct tasklet_struct *t)
-```
 
 
 
-#### 工作队列
+#### （3）工作队列
 
 工作队列是另外一种下半部执行方式，工作队列在**进程上下文**执行，工作队列将要推后的工作交给一个内核线程去执行，因为工作队列工作在进程上下文，因此工作队列允许睡眠或重新调度。因此如果你要推后的工作可以睡眠那么就可以选择工作队列，否则的话就只能选择软中断或 tasklet。
 
 
-
 在使用方法上与tasklet非常相似，先定义，初始化，然后在上半部处理函数中调用。
+
+1. 定义和初始化
+   ```c
+	#include <linux/workqueue.h>
+
+	// 定义工作项
+	static struct work_struct my_work;
+
+	// 工作处理函数（进程上下文）
+	static void my_work_func(struct work_struct *work) {
+		// 可执行阻塞操作（如I/O读写、获取信号量）
+		msleep(100);  // 允许睡眠
+	}
+
+	// 初始化工作项（通常在模块初始化中）
+	INIT_WORK(&my_work, my_work_func);
+   ```
+2. 上半部触发工作队列
+   ```c
+   static irqreturn_t my_irq_handler(int irq, void *dev_id) {
+		// 上半部：快速处理
+		schedule_work(&my_work);  // 提交工作项到共享队列
+		return IRQ_HANDLED;
+	}
+   ```
+3. 
 
 
 
