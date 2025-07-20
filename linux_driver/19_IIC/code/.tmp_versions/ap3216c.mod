@@ -1,0 +1,2 @@
+/home/user/linux/imx6ull/driver/I.MX6ULL-/linux_driver/19_IIC/code/ap3216c.ko
+/home/user/linux/imx6ull/driver/I.MX6ULL-/linux_driver/19_IIC/code/ap3216c.o
