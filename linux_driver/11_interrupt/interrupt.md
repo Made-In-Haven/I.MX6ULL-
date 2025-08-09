@@ -381,7 +381,7 @@ soc{
 
 
 
-通用函数irq_of_parse_and_map可以从interrupt属性获取中断号
+通用函数irq_of_parse_and_map可以从interrupts属性获取中断号
 
 ```c
 unsigned int irq_of_parse_and_map(struct device_node *dev,
