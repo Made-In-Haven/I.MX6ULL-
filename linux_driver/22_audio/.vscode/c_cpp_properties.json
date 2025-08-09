@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/user/linux/imx6ull/driver/linux_kernel/include", 
+                "/home/user/linux/imx6ull/driver/linux_kernel/arch/arm/include", 
+                "/home/user/linux/imx6ull/driver/linux_kernel/arch/arm/include/generated/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "/home/user/linux/imx6ull/driver/linux_kernel/include",
+                    "/home/user/linux/imx6ull/driver/linux_kernel/arch/arm/include",
+                    "/home/user/linux/imx6ull/driver/linux_kernel/arch/arm/include/generated"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+            
+        }
+    ],
+    "version": 4
+}
