@@ -405,6 +405,27 @@ void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table 
 
 参数 wait_address 是要添加到 poll_table 中的等待队列头，参数 p 就是 poll_table，就是file_operations 中 poll 函数的 wait 参数。
 
+```c
+
+unsigned int dev_poll (struct file * filp, struct poll_table_struct * wait)
+{
+    int mask = 0;       //poll函数要返回给应用程序的设备或资源状态
+    struct irq_key * pkey0 = &((struct dev*)filp->private_data)->key[0];
+    
+    poll_wait(filp,&pkey0->rwait,wait);     //
+
+    //判断是否可读
+    if(pkey0->read_state)   //可读
+    {
+        mask = POLLIN|POLLRDNORM;
+    }
+
+    return mask;
+}
+```
+
+
+
 
 
 ### read函数要做的操作
@@ -463,7 +484,7 @@ sequenceDiagram
     Note over Driver: 设备状态变化...
     HW->>Driver: 硬件中断(数据到达)
     Driver->>Driver: 设置 data_ready=1
-    Driver->>Driver: wake_up_interruptible(&read_queue)
+    Driver->>Driver: wake_up_interruptible(\&read_queue)
     Driver-->>Kernel: 中断处理完成
 
     Kernel->>Driver: 再次调用 .poll() 方法
