@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/alientek/linux/imx6ull/alientek_kernel/include", 
+                "/home/alientek/linux/imx6ull/alientek_kernel/arch/arm/include", 
+                "/home/alientek/linux/imx6ull/alientek_kernel/arch/arm/include/generated/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "/home/alientek/linux/imx6ull/alientek_kernel/include",
+                    "/home/alientek/linux/imx6ull/alientek_kernel/arch/arm/include",
+                    "/home/alientek/linux/imx6ull/alientek_kernel/arch/arm/include/generated"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+            
+        }
+    ],
+    "version": 4
+}
